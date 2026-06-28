@@ -3,9 +3,38 @@
 A small web app for a friends' prediction pool. Pool code to join, name + PIN to log in,
 predict scorelines, auto-locked at kickoff, live leaderboard. Results sync automatically.
 
-**Scoring:** right result = 2 pts · exact scoreline = 3 pts · +1 bonus for every 5 matches predicted.
+**Group scoring:** right result = 2 pts · exact scoreline = 3 pts.
+
+**Knockout scoring:** correct qualifier = 2 · correct goal difference = +1 · exact full-time score = +1 · exact penalty shootout = +1 (max 5). Predict a draw and you enter a pens score — the side with more pens is who you think goes through.
 
 ---
+
+## ⚡ UPDATING AN ALREADY-DEPLOYED POOL (knockouts + penalties)
+
+If your pool is already live and you're adding the knockout update, do these three things:
+
+1. **Replace the files** — upload this whole project over your existing GitHub repo (keep the
+   folder layout: `src/…`, `api/…`, `public/…`). Commit. Vercel redeploys automatically.
+2. **Run the migration** — Supabase → SQL Editor → paste all of **`MIGRATION.sql`** → Run.
+   This adds two optional penalty columns. It does **not** touch any existing data — every
+   group prediction, result, player and the leaderboard stay exactly as they are. *(This is the
+   only new step versus your original setup.)*
+3. **Redeploy without cache** if Vercel doesn't pick it up: Deployments → ⋯ → Redeploy →
+   untick "Use existing Build Cache".
+
+### 60-second self-test (do this before the real knockouts)
+1. Turn on **Practice mode** (toggle near the tabs) — unlocks everything for a dry run.
+2. **Knockout tab → Edit fixtures** → add a fake tie (e.g. *Brazil v Spain*, any round, pick a
+   time + zone) → Done.
+3. Open that tie, enter your pick **1–1**, and a **Penalties** box appears — enter **4–3**
+   (so you've picked Brazil through). It should show "Through: Brazil".
+4. **Results tab** → enter the same match **1–1**, then its **Penalties 4–3**.
+5. **Leaderboard → Knockout / Overall** → you should score **5** (2 qualifier +1 GD +1 exact
+   +1 pens). Change the result to **2–1** and you'll see it drop to **2** (qualifier only).
+6. Turn Practice mode back **off**. Done — delete the fake fixture.
+
+---
+
 
 ## What you'll set up (all free tiers)
 1. **Supabase** — database + realtime (shared data).

@@ -14,6 +14,8 @@ create table if not exists kkm_predictions (
   match_id text not null,
   home int not null,
   away int not null,
+  ph int,
+  pa int,
   updated_at timestamptz default now(),
   primary key (pool, player_id, match_id)
 );
@@ -23,6 +25,8 @@ create table if not exists kkm_results (
   match_id text not null,
   home int not null,
   away int not null,
+  ph int,
+  pa int,
   updated_at timestamptz default now(),
   primary key (pool, match_id)
 );

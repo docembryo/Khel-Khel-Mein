@@ -26,13 +26,18 @@ export default async function handler(req, res) {
       const j = await r.json();
       finished = (j.matches || [])
         .filter((m) => m.status === "FINISHED" && m.score?.fullTime?.home != null)
-        .map((m) => ({ home: m.homeTeam.name, away: m.awayTeam.name, h: m.score.fullTime.home, a: m.score.fullTime.away }));
+        .map((m) => ({
+          home: m.homeTeam.name, away: m.awayTeam.name,
+          h: m.score.fullTime.home, a: m.score.fullTime.away,
+          // pens are only present when the tie was decided by a shootout
+          ph: m.score.penalties?.home ?? null, pa: m.score.penalties?.away ?? null,
+        }));
     } else {
       const r = await fetch("https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json");
       const j = await r.json();
       finished = (j.matches || [])
         .filter((m) => m.score?.ft)
-        .map((m) => ({ home: m.team1, away: m.team2, h: m.score.ft[0], a: m.score.ft[1] }));
+        .map((m) => ({ home: m.team1, away: m.team2, h: m.score.ft[0], a: m.score.ft[1], ph: m.score?.pens?.[0] ?? null, pa: m.score?.pens?.[1] ?? null }));
     }
   } catch (e) {
     return res.status(502).json({ error: "feed fetch failed", detail: String(e) });
@@ -42,11 +47,14 @@ export default async function handler(req, res) {
   for (const f of finished) {
     const hit = lookup[pairKey(f.home, f.away)];
     if (!hit) continue;
-    // Orient the score to our fixture's home/away.
+    // Orient the score (and pens) to our fixture's home/away.
     const direct = normTeam(f.home) === hit.home;
+    const hasPens = f.ph != null && f.pa != null;
     rows.push({
       pool: POOL_CODE, match_id: hit.id,
       home: direct ? f.h : f.a, away: direct ? f.a : f.h,
+      ph: hasPens ? (direct ? f.ph : f.pa) : null,
+      pa: hasPens ? (direct ? f.pa : f.ph) : null,
       updated_at: new Date().toISOString(),
     });
   }
