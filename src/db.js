@@ -13,16 +13,26 @@ export async function hashPin(pin) {
 }
 
 export async function fetchAll() {
-  const [pl, pr, rs, ko] = await Promise.all([
+  const [pl, rs, ko] = await Promise.all([
     supabase.from("kkm_players").select("id,name").eq("pool", POOL),
-    supabase.from("kkm_predictions").select("player_id,match_id,home,away,ph,pa").eq("pool", POOL),
     supabase.from("kkm_results").select("match_id,home,away,ph,pa").eq("pool", POOL),
     supabase.from("kkm_knockouts").select("id,round,home,away,ko").eq("pool", POOL),
   ]);
+  // Predictions can exceed Supabase's 1000-row API cap, so page through them all.
+  const predRows = [];
+  for (let from = 0; from < 100000; from += 1000) {
+    const { data, error } = await supabase
+      .from("kkm_predictions").select("player_id,match_id,home,away,ph,pa").eq("pool", POOL)
+      .order("player_id", { ascending: true }).order("match_id", { ascending: true })
+      .range(from, from + 999);
+    if (error || !data || data.length === 0) break;
+    predRows.push(...data);
+    if (data.length < 1000) break;
+  }
   const roster = (pl.data || []).map((p) => ({ id: p.id, name: p.name }));
   const preds = {};
   for (const p of roster) preds[p.id] = {};
-  for (const row of pr.data || []) { (preds[row.player_id] ||= {})[row.match_id] = [row.home, row.away, row.ph ?? "", row.pa ?? ""]; }
+  for (const row of predRows) { (preds[row.player_id] ||= {})[row.match_id] = [row.home, row.away, row.ph ?? "", row.pa ?? ""]; }
   const results = {};
   for (const row of rs.data || []) results[row.match_id] = [row.home, row.away, row.ph ?? "", row.pa ?? ""];
   const kos = (ko.data || []).map((k) => ({ id: k.id, round: k.round, home: k.home, away: k.away, ko: Number(k.ko) }));

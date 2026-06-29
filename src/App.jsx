@@ -110,7 +110,7 @@ function Game({ session, onLogout }) {
   const [tab, setTab] = useState("predict");
   const [view, setView] = useState({ t: "home" });
   const [now, setNow] = useState(Date.now());
-  const [filter, setFilter] = useState("open");
+  const [filter, setFilter] = useState("all");
   const [stage, setStage] = useState("overall");
   const [practice, setPractice] = useState(false);
   const [editKO, setEditKO] = useState(false);
@@ -548,7 +548,7 @@ function Rules() {
     ["Deadline", "Predictions lock the moment a match kicks off (IST). No late entries."],
     ["Privacy", "Everyone's picks stay hidden until kickoff. After that, they appear on the match page for all to see."],
     ["Signing in", "Enter the pool code once to join. After that, log in with your name and your 4-digit PIN — that's how only you can edit your picks."],
-    ["Results", "Final scores, the winner, and shootout scores sync automatically from the live feed. Anyone can also enter or correct a score on the Results tab."],
+    ["Results", "Scores are entered by hand on the Results tab once a match kicks off. Anyone in the pool can enter or correct a score. For a knockout that ends level, a penalty box appears so you record who went through."],
     ["Leaderboard", "Three views: Group, Knockout, and Overall. A group-stage champion can be crowned before the knockouts begin."],
   ];
   return (
@@ -559,6 +559,7 @@ function Rules() {
           <div style={{ fontSize: 13, color: "#5c5648", marginTop: 3, lineHeight: 1.5 }}>{b}</div>
         </div>
       ))}
+      <div style={{ marginTop: 14, fontSize: 11, color: "#b8b1a2", textAlign: "center" }}>Build 0629-e · loads all predictions</div>
     </div>
   );
 }
