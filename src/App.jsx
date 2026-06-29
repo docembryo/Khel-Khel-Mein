@@ -125,7 +125,13 @@ function Game({ session, onLogout }) {
   const refetch = useCallback(async () => {
     const d = await db.fetchAll();
     setRoster(d.roster); setResults(d.results); setKos(d.kos);
-    setPreds((prev) => ({ ...d.preds, [myId]: prev[myId] || d.preds[myId] || {} }));
+    // DB is the source of truth for everyone; lay my own in-memory edits on top so a
+    // slow/late fetch can never wipe predictions that are already saved.
+    setPreds((prev) => {
+      const merged = { ...d.preds };
+      merged[myId] = { ...(d.preds[myId] || {}), ...(prev[myId] || {}) };
+      return merged;
+    });
   }, [myId]);
 
   useEffect(() => { refetch(); }, [refetch]);
